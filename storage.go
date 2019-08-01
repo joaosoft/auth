@@ -38,7 +38,7 @@ func (storage *StoragePostgres) GetUserByIdUserAndRefreshToken(idUser, refreshTo
 	}
 
 	if count == 0 {
-		return nil, nil
+		return nil, ErrorNotFound
 	}
 
 	return user, nil
@@ -59,7 +59,7 @@ func (storage *StoragePostgres) GetUserByEmailAndPassword(email, password string
 	}
 
 	if count == 0 {
-		return nil, nil
+		return nil, ErrorNotFound
 	}
 
 	return user, nil

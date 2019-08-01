@@ -13,8 +13,8 @@ type ErrorResponse struct {
 }
 
 type GetSessionRequest struct {
-	Email    string `json:"email" validate:"notzero"`
-	Password string `json:"password" validate:"notzero"`
+	Email    string `json:"email" validate:"notzero, error={InvalidBodyParameter}"`
+	Password string `json:"password" validate:"notzero, error={InvalidBodyParameter}"`
 }
 
 type RefreshSessionRequest struct {

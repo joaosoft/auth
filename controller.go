@@ -22,7 +22,12 @@ func NewController(config *AuthConfig, interactor *Interactor) *Controller {
 func (c *Controller) GetSessionHandler(ctx *web.Context) error {
 	request := &GetSessionRequest{}
 
-	err := json.Unmarshal(ctx.Request.Body, request)
+	err := ctx.Request.BindParams(&request)
+	if err != nil {
+		return ctx.Response.JSON(web.StatusBadRequest, err)
+	}
+
+	err = ctx.Request.Bind(&request)
 	if err != nil {
 		return ctx.Response.JSON(web.StatusBadRequest, err)
 	}
@@ -59,7 +64,7 @@ func (c *Controller) RefreshSessionHandler(ctx *web.Context) error {
 func (c *Controller) SignUpHandler(ctx *web.Context) error {
 	request := &SignUpRequest{}
 
-	err := json.Unmarshal(ctx.Request.Body, request)
+	err := ctx.Request.Bind(&request)
 	if err != nil {
 		return ctx.Response.JSON(web.StatusBadRequest, err)
 	}
