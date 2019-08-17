@@ -8,7 +8,7 @@ build:
 	docker build -t auth:1.0 .
 
 push:
-	docker login --username joaosoft --password JoAo1081321
+	docker login --username joaosoft
 	docker tag auth:1.0 joaosoft/auth
 	docker push joaosoft/auth
 
