@@ -29,6 +29,7 @@ RUN chmod +x auth
 FROM scratch
 COPY --from=builder /go/src/auth/auth .
 COPY ./config config
+COPY ./schema schema
 
 EXPOSE 8001
 ENTRYPOINT ["./auth"]
