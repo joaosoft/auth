@@ -16,6 +16,27 @@ type Address struct {
 	Params    Params
 }
 
+func (p Params) String() string {
+	var url string
+
+	lenP := len(p)
+	if lenP > 0 {
+		url += "?"
+	}
+
+	i := 1
+	for key, value := range p {
+		url += fmt.Sprintf("%s=%s", key, value[0])
+
+		if i < lenP {
+			url += "&"
+				i++
+		}
+	}
+
+	return url
+}
+
 func NewAddress(url string) *Address {
 	var tmp, full, schema, host, paramsUrl string
 	var params = make(Params)

@@ -7,6 +7,7 @@ LABEL maintainer="João Ribeiro <joaosoft@gmail.com>"
 
 RUN apk update && apk add --no-cache \
 	curl \
+	mercurial \
 	bash \
 	dep \
 	git
@@ -16,7 +17,8 @@ COPY . .
 
 RUN dep ensure
 
-RUN GOOS=linux GOARCH=arm GOARM=5 CGO_ENABLED=0 go build -a -installsuffix cgo -o auth .
+# build for raspberry pi 3
+RUN GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0 go build -o auth ./main
 
 RUN chmod +x auth
 

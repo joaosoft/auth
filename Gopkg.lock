@@ -122,19 +122,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9f024c4b4b8591fb9c1e821caeef22291111905999411ae2e7a497e002216e1b"
+  digest = "1:cda4952132c28d702d18eb103405f8b920adab4c81b2360cf4be8c37183ae1ad"
   name = "github.com/joaosoft/validator"
   packages = ["."]
   pruneopts = "UT"
-  revision = "135432b11e05afb138e74550e19f11041069bf6d"
+  revision = "f9b6941f039f66605915a9d49d2927e475a85a4c"
 
 [[projects]]
   branch = "master"
-  digest = "1:f9fcf6380f7a8005485c329939382c572f19c6722bb731fd180b8fd497c97c97"
+  digest = "1:cae908d30212103c5cede7d97ebbf5d8cb4e4a414681774a77d19abc11a70931"
   name = "github.com/joaosoft/web"
   packages = ["."]
   pruneopts = "UT"
-  revision = "765d3022f0dfafcf880bd404d5950868c474112b"
+  revision = "cf92c794fc031ed9e809d02ef52eac9dcf37766a"
 
 [[projects]]
   branch = "master"
@@ -192,12 +192,12 @@
   version = "v0.1.2"
 
 [[projects]]
-  digest = "1:9b90c7639a41697f3d4ad12d7d67dfacc9a7a4a6e0bbfae4fc72d0da57c28871"
+  digest = "1:36325ebb862e0382f2f14feef409ba9351271b89ada286ae56836c603d43b59c"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   pruneopts = "UT"
-  revision = "1311e847b0cb909da63b5fecfb5370aa66236465"
-  version = "v0.0.8"
+  revision = "e1f7b56ace729e4a73a29a6b4fac6cd5fcda7ab3"
+  version = "v0.0.9"
 
 [[projects]]
   digest = "1:53bc4cd4914cd7cd52139990d5170d6dc99067ae31c56530621b18b35fc30318"
@@ -284,11 +284,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d6bb6f3240a488ffe5bb6952b513569d009927dcb20ff94885f87b76cef2b698"
+  digest = "1:523f246a749e007dff099d654ec713cf94cd0f441bce9072ceaa1af62722d225"
   name = "github.com/streadway/amqp"
   packages = ["."]
   pruneopts = "UT"
-  revision = "75d898a42a940fbc854dfd1a4199eabdc00cf024"
+  revision = "eade30b20f1d77d4ab7a3c72d5e3a3331b6443ba"
 
 [[projects]]
   digest = "1:c468422f334a6b46a19448ad59aaffdfc0a36b08fdcc1c749a0b29b6453d7e59"
@@ -323,15 +323,15 @@
   name = "golang.org/x/net"
   packages = ["idna"]
   pruneopts = "UT"
-  revision = "ca1201d0de80cfde86cb01aea620983605dfe99b"
+  revision = "74dc4d7220e7acc4e100824340f3e66577424772"
 
 [[projects]]
   branch = "master"
-  digest = "1:ec99dad7924bf972656818f5d62216fb987b7e077d401deb86b3c1e5e1b1d4d6"
+  digest = "1:47844666be86089349a441f5f0ece22f42a87a8cb8c9a31294c593f43209ad19"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "fc99dfbffb4e5ed5758a37e31dd861afe285406b"
+  revision = "fde4db37ae7ad8191b03d30d27f258b5291ae4e3"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"

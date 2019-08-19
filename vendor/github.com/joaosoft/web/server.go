@@ -5,6 +5,7 @@ import (
 	"net"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/joaosoft/color"
@@ -12,6 +13,7 @@ import (
 )
 
 type Server struct {
+	name                string
 	config              *ServerConfig
 	isLogExternal       bool
 	logger              logger.ILogger
@@ -19,22 +21,22 @@ type Server struct {
 	filters             Filters
 	middlewares         []MiddlewareFunc
 	listener            net.Listener
-	address             string
 	errorhandler        ErrorHandler
 	multiAttachmentMode MultiAttachmentMode
+	started             bool
 }
 
 func NewServer(options ...ServerOption) (*Server, error) {
 	config, err := NewServerConfig()
 
 	service := &Server{
-		logger:              logger.NewLogDefault("Server", logger.WarnLevel),
+		name:                "server",
+		logger:              logger.NewLogDefault("server", logger.WarnLevel),
 		routes:              make(Routes),
 		filters:             make(Filters),
 		middlewares:         make([]MiddlewareFunc, 0),
-		address:             ":80",
 		multiAttachmentMode: MultiAttachmentModeZip,
-		config:              &ServerConfig{},
+		config:              &config.Server,
 	}
 
 	if service.isLogExternal {
@@ -44,15 +46,19 @@ func NewServer(options ...ServerOption) (*Server, error) {
 	if err != nil {
 		service.logger.Error(err.Error())
 	} else {
-		level, _ := logger.ParseLevel(config.Client.Log.Level)
+		level, _ := logger.ParseLevel(service.config.Log.Level)
 		service.logger.Debugf("setting log level to %s", level)
 		service.logger.Reconfigure(logger.WithLevel(level))
 	}
 
 	service.Reconfigure(options...)
 
-	if config.Server.Address != "" {
-		service.address = config.Server.Address
+	if config.Server.Address == "" {
+		port, err := GetFreePort()
+		if err != nil {
+			return nil, err
+		}
+		config.Server.Address = fmt.Sprintf(":%d", port)
 	}
 
 	if err = service.AddRoute(MethodGet, "/favicon.ico", service.handlerFile); err != nil {
@@ -120,42 +126,6 @@ func (w *Server) SetErrorHandler(handler ErrorHandler) error {
 	return nil
 }
 
-func (w *Server) Start() error {
-	w.logger.Debug("executing Start")
-	var err error
-
-	w.listener, err = net.Listen("tcp", w.address)
-	if err != nil {
-		w.logger.Errorf("error connecting to %s: %s", w.address, err)
-		return err
-	}
-
-	if w.address == ":0" {
-		split := strings.Split(w.listener.Addr().String(), ":")
-		w.address = fmt.Sprintf(":%s", split[len(split)-1])
-	}
-
-	fmt.Println(color.WithColor("http Server started on [%s]", color.FormatBold, color.ForegroundRed, color.BackgroundBlack, w.address))
-
-	for {
-		conn, err := w.listener.Accept()
-		w.logger.Info("accepted connection")
-		if err != nil {
-			w.logger.Errorf("error accepting connection: %s", err)
-			continue
-		}
-
-		if conn == nil {
-			w.logger.Error("the connection isn't initialized")
-			continue
-		}
-
-		go w.handleConnection(conn)
-	}
-
-	return err
-}
-
 func (w *Server) handleConnection(conn net.Conn) (err error) {
 	var ctx *Context
 	var length int
@@ -173,8 +143,6 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 		w.logger.Errorf("error getting request: [%s]", err)
 		return err
 	}
-
-	fmt.Println(color.WithColor("[IN] Address[%s] Method[%s] Url[%s] Protocol[%s] Start[%s]", color.FormatBold, color.ForegroundBlue, color.BackgroundBlack, request.IP, request.Method, request.Address.Url, request.Protocol, startTime))
 
 	if w.logger.IsDebugEnabled() {
 		if request.Body != nil {
@@ -196,10 +164,10 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 			if val, ok := request.Headers[HeaderAccessControlRequestMethod]; ok {
 				method = Method(val[0])
 			}
-			_, err := w.GetRoute(method, request.Address.Url)
+			route, err = w.GetRoute(method, request.Address.Url)
 			if err != nil {
 				w.logger.Errorf("error getting route: [%s]", err)
-				goto on_error
+				goto done
 			}
 
 			if err == nil && route != nil {
@@ -210,6 +178,7 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 					string(HeaderAuthorization),
 					string(HeaderXRequestedWith),
 				}, ", ")}
+				goto done
 			}
 
 			skipRouterHandler = true
@@ -220,13 +189,13 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 	route, err = w.GetRoute(request.Method, request.Address.Url)
 	if err != nil {
 		w.logger.Errorf("error getting route: [%s]", err)
-		goto on_error
+		goto done
 	}
 
 	// get url parameters
 	if err = w.LoadUrlParms(request, route); err != nil {
 		w.logger.Errorf("error loading url parameters: [%s]", err)
-		goto on_error
+		goto done
 	}
 
 	// execute before filters
@@ -236,7 +205,7 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 		filters, err := w.GetMatchedFilters(after, request.Method, request.Address.Url)
 		if err != nil {
 			w.logger.Errorf("error getting route: [%s]", err)
-			goto on_error
+			goto done
 		}
 
 		length = len(filters)
@@ -267,7 +236,7 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 		filters, err := w.GetMatchedFilters(between, request.Method, request.Address.Url)
 		if err != nil {
 			w.logger.Errorf("error getting route: [%s]", err)
-			goto on_error
+			goto done
 		}
 
 		length = len(filters)
@@ -300,7 +269,7 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 		filters, err := w.GetMatchedFilters(before, request.Method, request.Address.Url)
 		if err != nil {
 			w.logger.Errorf("error getting route: [%s]", err)
-			goto on_error
+			goto done
 		}
 
 		length = len(filters)
@@ -314,10 +283,10 @@ func (w *Server) handleConnection(conn net.Conn) (err error) {
 	// run handlers with middleware's
 	if err = handlerRoute(ctx); err != nil {
 		w.logger.Errorf("error executing handler: [%s]", err)
-		goto on_error
+		goto done
 	}
 
-on_error:
+done:
 	if err != nil {
 		if er := w.errorhandler(ctx, err); er != nil {
 			w.logger.Errorf("error writing error: [error: %s] %s", err, er)
@@ -329,17 +298,7 @@ on_error:
 		w.logger.Errorf("error writing response: [%s]", err)
 	}
 
-	fmt.Println(color.WithColor("[OUT] Status[%d] Address[%s] Method[%s] Url[%s] Protocol[%s] Start[%s] Elapsed[%s]", color.FormatBold, color.ForegroundCyan, color.BackgroundBlack, ctx.Response.Status, ctx.Request.IP, ctx.Request.Method, ctx.Request.Address.Url, ctx.Request.Protocol, startTime, time.Since(startTime)))
-
-	return nil
-}
-
-func (w *Server) Stop() error {
-	w.logger.Debug("executing Stop")
-
-	if w.listener != nil {
-		w.listener.Close()
-	}
+	fmt.Println(color.WithColor("Server[%s] Status[%d] Address[%s] Method[%s] Url[%s] Protocol[%s] Start[%s] Elapsed[%s]", color.FormatBold, color.ForegroundCyan, color.BackgroundBlack, w.name, ctx.Response.Status, ctx.Request.IP, ctx.Request.Method, ctx.Request.Address.Url, ctx.Request.Protocol, startTime.Format(TimeFormat), time.Since(startTime)))
 
 	return nil
 }
@@ -408,10 +367,81 @@ func (w *Server) LoadUrlParms(request *Request, route *Route) error {
 	return nil
 }
 
-func (w *Server) GetAddress() string {
-	return w.address
+func emptyHandler(ctx *Context) error {
+	return nil
 }
 
-func emptyHandler(ctx *Context) error {
+func (w *Server) Start(waitGroup ...*sync.WaitGroup) error {
+	var wg *sync.WaitGroup
+
+	if len(waitGroup) == 0 {
+		wg = &sync.WaitGroup{}
+		wg.Add(1)
+	} else {
+		wg = waitGroup[0]
+	}
+
+	w.logger.Debug("executing Start")
+	var err error
+
+	w.listener, err = net.Listen("tcp", w.config.Address)
+	if err != nil {
+		w.logger.Errorf("error connecting to %s: %s", w.config.Address, err)
+		return err
+	}
+
+	if w.config.Address == ":0" {
+		split := strings.Split(w.listener.Addr().String(), ":")
+		w.config.Address = fmt.Sprintf(":%s", split[len(split)-1])
+	}
+
+	fmt.Println(color.WithColor("http Server [%s] started on [%s]", color.FormatBold, color.ForegroundRed, color.BackgroundBlack, w.name, w.config.Address))
+
+	w.started = true
+	wg.Done()
+
+	for {
+		conn, err := w.listener.Accept()
+		w.logger.Info("accepted connection")
+		if err != nil {
+			w.logger.Errorf("error accepting connection: %s", err)
+			continue
+		}
+
+		if conn == nil {
+			w.logger.Error("the connection isn't initialized")
+			continue
+		}
+
+		go w.handleConnection(conn)
+	}
+
+	return err
+}
+
+func (w *Server) Started() bool {
+	return w.started
+}
+
+func (w *Server) Stop(waitGroup ...*sync.WaitGroup) error {
+	var wg *sync.WaitGroup
+
+	if len(waitGroup) == 0 {
+		wg = &sync.WaitGroup{}
+		wg.Add(1)
+	} else {
+		wg = waitGroup[0]
+	}
+
+	defer wg.Done()
+
+	w.logger.Debug("executing Stop")
+
+	if w.listener != nil {
+		w.listener.Close()
+	}
+
+	w.started = false
+
 	return nil
 }
