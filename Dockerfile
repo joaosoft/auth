@@ -26,7 +26,15 @@ RUN chmod +x auth
 ############################
 # STEP 2 run binary
 ############################
-FROM scratch
+#FROM scratch
+FROM alpine:latest
+
+RUN apk update && apk --no-cache add \
+	ca-certificates \
+	curl \
+	curl \
+	bash
+
 COPY --from=builder /go/src/auth/auth .
 COPY ./config config
 COPY ./schema schema
