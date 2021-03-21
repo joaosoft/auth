@@ -7,10 +7,10 @@ import (
 func NewValidator() *Validator {
 
 	v := &Validator{
-		tag:       ConstDefaultValidationTag,
+		tag:       constDefaultValidationTag,
 		callbacks: make(map[string]callbackHandler),
 		sanitize:  make([]string, 0),
-		logger:    logger.NewLogDefault(ConstDefaultLogTag, logger.InfoLevel),
+		logger:    logger.NewLogDefault(constDefaultLogTag, logger.InfoLevel),
 	}
 
 	v.init()
@@ -18,25 +18,19 @@ func NewValidator() *Validator {
 	return v
 }
 
-func (v *Validator) newActiveHandlers() map[string]bool {
-	handlers := make(map[string]bool)
+func (v *Validator) newActiveHandlers() map[string]empty {
+	handlers := make(map[string]empty)
 
-	if v.handlersBefore != nil {
-		for key, _ := range v.handlersBefore {
-			handlers[key] = true
-		}
+	for key, _ := range v.handlersBefore {
+		handlers[key] = empty{}
 	}
 
-	if v.handlersMiddle != nil {
-		for key, _ := range v.handlersMiddle {
-			handlers[key] = true
-		}
+	for key, _ := range v.handlersMiddle {
+		handlers[key] = empty{}
 	}
 
-	if v.handlersAfter != nil {
-		for key, _ := range v.handlersAfter {
-			handlers[key] = true
-		}
+	for key, _ := range v.handlersAfter {
+		handlers[key] = empty{}
 	}
 
 	return handlers
@@ -44,21 +38,21 @@ func (v *Validator) newActiveHandlers() map[string]bool {
 
 func (v *Validator) AddBefore(name string, handler beforeTagHandler) *Validator {
 	v.handlersBefore[name] = handler
-	v.activeHandlers[name] = true
+	v.activeHandlers[name] = empty{}
 
 	return v
 }
 
 func (v *Validator) AddMiddle(name string, handler middleTagHandler) *Validator {
 	v.handlersMiddle[name] = handler
-	v.activeHandlers[name] = true
+	v.activeHandlers[name] = empty{}
 
 	return v
 }
 
 func (v *Validator) AddAfter(name string, handler afterTagHandler) *Validator {
 	v.handlersAfter[name] = handler
-	v.activeHandlers[name] = true
+	v.activeHandlers[name] = empty{}
 
 	return v
 }
@@ -69,14 +63,20 @@ func (v *Validator) SetErrorCodeHandler(handler errorCodeHandler) *Validator {
 	return v
 }
 
-func (v *Validator) SetValidateAll(validateAll bool) *Validator {
-	v.validateAll = validateAll
+func (v *Validator) SetValidateAll(canValidateAll bool) *Validator {
+	v.canValidateAll = canValidateAll
 
 	return v
 }
 
 func (v *Validator) SetTag(tag string) *Validator {
 	v.tag = tag
+
+	return v
+}
+
+func (v *Validator) SetPwdSettings(settings *PwdSettings) *Validator {
+	v.pwd.settings = settings
 
 	return v
 }
@@ -93,6 +93,6 @@ func (v *Validator) AddCallback(name string, callback callbackHandler) *Validato
 	return v
 }
 
-func (v *Validator) Validate(obj interface{}, args ...*Argument) []error {
+func (v *Validator) Validate(obj interface{}, args ...*argument) []error {
 	return NewValidatorHandler(v, args...).handleValidation(obj)
 }

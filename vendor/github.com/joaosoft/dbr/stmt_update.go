@@ -55,9 +55,7 @@ func (stmt *StmtUpdate) WhereOr(query string, values ...interface{}) *StmtUpdate
 	return stmt
 }
 
-func (stmt *StmtUpdate) Build() (string, error) {
-	var query string
-
+func (stmt *StmtUpdate) Build() (query string, err error) {
 	// withStmt
 	withStmt, err := stmt.withStmt.Build()
 	if err != nil {
@@ -75,7 +73,7 @@ func (stmt *StmtUpdate) Build() (string, error) {
 		return "", err
 	}
 
-	query += fmt.Sprintf("%s %s %s %s",  constFunctionUpdate, table, constFunctionSet, sets)
+	query += fmt.Sprintf("%s %s %s %s", constFunctionUpdate, table, constFunctionSet, sets)
 
 	if len(stmt.conditions.list) > 0 {
 		conds, err := stmt.conditions.Build()
@@ -100,6 +98,27 @@ func (stmt *StmtUpdate) Build() (string, error) {
 
 func (stmt *StmtUpdate) Exec() (sql.Result, error) {
 
+	if stmt.Dbr.isEnabledEventHandler {
+		stmt.returning.list = nil
+		stmt.Return("*")
+
+		query, err := stmt.Build()
+		if err != nil {
+			return nil, err
+		}
+
+		rows, err := stmt.Db.Query(query)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := stmt.Dbr.eventHandler(stmt.sqlOperation, []string{fmt.Sprint(stmt.table)}, query, err, rows, nil); err != nil {
+			return nil, err
+		}
+
+		return NoResult, nil
+	}
+
 	startTime := time.Now()
 	defer func() {
 		stmt.Duration = time.Since(startTime)
@@ -111,8 +130,7 @@ func (stmt *StmtUpdate) Exec() (sql.Result, error) {
 	}
 
 	result, err := stmt.Db.Exec(query)
-
-	if err := stmt.Dbr.eventHandler(stmt.sqlOperation, []string{fmt.Sprint(stmt.table)}, query, err, nil, result); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -145,11 +163,11 @@ func (stmt *StmtUpdate) Return(column ...interface{}) *StmtUpdate {
 	return stmt
 }
 
-func (stmt *StmtUpdate) Load(object interface{}) error {
+func (stmt *StmtUpdate) Load(object interface{}) (count int, err error) {
 
 	value := reflect.ValueOf(object)
 	if value.Kind() != reflect.Ptr || value.IsNil() {
-		return ErrorInvalidPointer
+		return 0, ErrorInvalidPointer
 	}
 
 	startTime := time.Now()
@@ -159,21 +177,21 @@ func (stmt *StmtUpdate) Load(object interface{}) error {
 
 	query, err := stmt.Build()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	rows, err := stmt.Db.Query(query)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	if err := stmt.Dbr.eventHandler(stmt.sqlOperation, []string{fmt.Sprint(stmt.table)}, query, err, rows, nil); err != nil {
-		return err
+	if stmt.Dbr.isEnabledEventHandler {
+		if err := stmt.Dbr.eventHandler(stmt.sqlOperation, []string{fmt.Sprint(stmt.table)}, query, err, rows, nil); err != nil {
+			return 0, err
+		}
 	}
 
 	defer rows.Close()
 
-	_, err = read(stmt.returning.list, rows, value)
-
-	return err
+	return read(stmt.returning.list, rows, value)
 }

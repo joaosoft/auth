@@ -19,5 +19,5 @@ func NewAddition(message string) IAddition {
 
 // ToError
 func (addition *Addition) ToError() error {
-	return errors.New(errors.ErrorLevel, 0, addition.message)
+	return errors.New(errors.LevelError, 0, addition.message)
 }

@@ -3,25 +3,34 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:16448cc34c274f3c9644f235517f28562263e7029e58c2e388652fac2e109164"
   name = "github.com/joaosoft/errors"
   packages = ["."]
-  revision = "595507b0a4a675ff2b92ad6f8884f74a36a07df2"
+  pruneopts = "UT"
+  revision = "5be0a9d62458e8b47c998d0b36192a629f55786f"
 
 [[projects]]
   branch = "master"
+  digest = "1:a371f7738e04bd2ab010ac4a23550eef6f41b90ecbc008ef896058496c1c5fba"
   name = "github.com/joaosoft/writers"
   packages = ["."]
+  pruneopts = "UT"
   revision = "310c8522699ddd9cbcaac2d0eca833c2afc1c037"
 
 [[projects]]
   branch = "master"
+  digest = "1:a3b8912deeef29007fab9a13a9f21b9e9b59c621a2ed61e2fe7b37320a71fbd5"
   name = "github.com/satori/go.uuid"
   packages = ["."]
+  pruneopts = "UT"
   revision = "b2ce2384e17bbe0c6d34077efa39dbab3e09123b"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bf4677177d30000710583707c09a2a287781d55ebeddce0e600e14f69f3b2a34"
+  input-imports = [
+    "github.com/joaosoft/errors",
+    "github.com/joaosoft/writers",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,9 +1,9 @@
 package dbr
 
 const (
-	constDialectPostgres DialectName = "postgres"
-	constDialectMysql    DialectName = "mysql"
-	constDialectSqlLite3 DialectName = "sqlite3"
+	constDialectPostgres dialectName = "postgres"
+	constDialectMysql    dialectName = "mysql"
+	constDialectSqlLite3 dialectName = "sqlite3"
 
 	constPostgresPlaceHolder = "?"
 	constMysqlPlaceHolder    = "?"
@@ -47,9 +47,10 @@ const (
 	constFunctionInto            = "INTO"
 	constFunctionRecursive       = "RECURSIVE"
 	constFunctionWith            = "WITH"
-	constFunctionUnionNormal     = "UNION"
-	constFunctionUnionIntersect  = "INTERSECT"
-	constFunctionUnionExcept     = "EXCEPT"
+	constFunctionUnion           = "UNION"
+	constFunctionUnionAll        = "UNION ALL"
+	constFunctionIntersect       = "INTERSECT"
+	constFunctionExcept          = "EXCEPT"
 	constFunctionNull            = "NULL"
 	constFunctionDistinct        = "DISTINCT"
 	constFunctionDistinctOn      = "DISTINCT ON"
@@ -64,6 +65,10 @@ const (
 	constFunctionOnConstraint    = "ON CONSTRAINT"
 	constFunctionDoUpdateSet     = "DO UPDATE SET"
 	constFunctionOrderBy         = "ORDER BY"
+	constFunctionFilter          = "FILTER"
+	constFunctionWithinGroup     = "WITHIN GROUP"
+	constFunctionOver            = "OVER"
+	constFunctionPartitionBy     = "PARTITION BY"
 	constFunctionNow             = "NOW"
 	constFunctionUser            = "USER"
 	constFunctionXmlAgg          = "XMLAGG"
@@ -94,10 +99,12 @@ const (
 	constFunctionCloseParentheses = ")"
 	constFunctionComma            = ","
 
-	constFunctionJoin      Join = "JOIN"
-	constFunctionLeftJoin  Join = "LEFT JOIN"
-	constFunctionRightJoin Join = "RIGHT JOIN"
-	constFunctionFullJoin  Join = "FULL JOIN"
+	constFunctionJoin        Join = "JOIN"
+	constFunctionLeftJoin    Join = "LEFT JOIN"
+	constFunctionRightJoin   Join = "RIGHT JOIN"
+	constFunctionFullJoin    Join = "FULL JOIN"
+	constFunctionCrossJoin   Join = "CROSS JOIN"
+	constFunctionNaturalJoin Join = "NATURAL JOIN"
 
 	OrderAsc  direction = "ASC"
 	OrderDesc direction = "DESC"
@@ -151,4 +158,8 @@ const (
 
 	constSqlLite3BoolTrue  = "1"
 	constSqlLite3BoolFalse = "0"
+
+	constJsonDb      = "db"
+	constJsonDbRead  = "db.read"
+	constJsonDbWrite = "db.write"
 )

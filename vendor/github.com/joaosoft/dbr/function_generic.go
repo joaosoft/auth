@@ -40,7 +40,5 @@ func (c *functionGeneric) Build(db *db) (string, error) {
 		}
 	}
 
-	query := fmt.Sprintf("%s(%s)", c.name, arguments)
-
-	return query, nil
+	return fmt.Sprintf("%s(%s)", c.name, arguments), nil
 }

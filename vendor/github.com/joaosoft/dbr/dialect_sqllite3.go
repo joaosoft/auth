@@ -13,54 +13,54 @@ func (d *dialectSqlLite3) Name() string {
 	return string(constDialectSqlLite3)
 }
 
-func (d *dialectSqlLite3) Encode(i interface{}) string {
-	value := reflect.ValueOf(i)
+func (d *dialectSqlLite3) Encode(value interface{}) string {
+	var isNull bool
+	encoded := reflect.ValueOf(value)
 
-	if value.Kind() == reflect.Ptr {
-		if value.IsNil() {
-			return constFunctionNull
-		}
-		value = value.Elem()
+	isNull, encoded = getValue(encoded)
+
+	if isNull {
+		return constFunctionNull
 	}
 
-	switch value.Kind() {
+	switch encoded.Kind() {
 	case reflect.String:
-		return d.EncodeString(value.String())
+		return d.EncodeString(encoded.String())
 	case reflect.Bool:
-		return d.EncodeBool(value.Bool())
+		return d.EncodeBool(encoded.Bool())
 	default:
-		switch value.Type() {
+		switch encoded.Type() {
 		case reflect.TypeOf(time.Time{}):
-			return d.EncodeTime(i.(time.Time))
+			return d.EncodeTime(value.(time.Time))
 		case reflect.TypeOf([]byte{}):
-			return d.EncodeBytes(i.([]byte))
+			return d.EncodeBytes(value.([]byte))
 		}
 	}
 
-	return fmt.Sprintf("%+v", value.Interface())
+	return fmt.Sprintf("%+v", encoded.Interface())
 }
 
 // https://www.sqlite.org/faq.html
-func (d *dialectSqlLite3) EncodeString(s string) string {
-	return `'` + strings.Replace(s, `'`, `''`, -1) + `'`
+func (d *dialectSqlLite3) EncodeString(value string) string {
+	return `'` + strings.Replace(value, `'`, `''`, -1) + `'`
 }
 
 // https://www.sqlite.org/lang_expr.html
-func (d *dialectSqlLite3) EncodeBool(b bool) string {
-	if b {
+func (d *dialectSqlLite3) EncodeBool(value bool) string {
+	if value {
 		return constSqlLite3BoolTrue
 	}
 	return constSqlLite3BoolFalse
 }
 
 // https://www.sqlite.org/lang_datefunc.html
-func (d *dialectSqlLite3) EncodeTime(t time.Time) string {
-	return `'` + t.UTC().Format(constTimeFormat) + `'`
+func (d *dialectSqlLite3) EncodeTime(value time.Time) string {
+	return `'` + value.UTC().Format(constTimeFormat) + `'`
 }
 
 // https://www.sqlite.org/lang_expr.html
-func (d *dialectSqlLite3) EncodeBytes(b []byte) string {
-	return fmt.Sprintf(`X'%x'`, b)
+func (d *dialectSqlLite3) EncodeBytes(value []byte) string {
+	return fmt.Sprintf(`X'%x'`, value)
 }
 
 func (d *dialectSqlLite3) EncodeColumn(column interface{}) string {

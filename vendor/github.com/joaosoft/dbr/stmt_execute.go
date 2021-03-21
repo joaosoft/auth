@@ -31,8 +31,8 @@ func (stmt *StmtExecute) Values(valuesList ...interface{}) *StmtExecute {
 	return stmt
 }
 
-func (stmt *StmtExecute) Build() (string, error) {
-	query := stmt.query
+func (stmt *StmtExecute) Build() (query string, _ error) {
+	query = stmt.query
 
 	if strings.Count(query, stmt.Db.Dialect.Placeholder()) != len(stmt.values.list) {
 		return "", ErrorNumberOfConditionValues
@@ -58,9 +58,14 @@ func (stmt *StmtExecute) Exec() (sql.Result, error) {
 	}
 
 	result, err := stmt.Db.Exec(query)
-
-	if err := stmt.Dbr.eventHandler(stmt.sqlOperation, []string{}, query, err, nil, result); err != nil {
+	if err != nil {
 		return nil, err
+	}
+
+	if stmt.Dbr.isEnabledEventHandler {
+		if err := stmt.Dbr.eventHandler(stmt.sqlOperation, []string{}, query, err, nil, result); err != nil {
+			return nil, err
+		}
 	}
 
 	return result, err

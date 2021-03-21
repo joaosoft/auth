@@ -14,7 +14,7 @@ func NewDb(database database, dialect dialect) *db {
 	}
 }
 
-func (dbr *Dbr) handle(operation SqlOperation, table []string, query string, err error, rows *sql.Rows, sqlResult sql.Result) error {
+func (dbr *Dbr) event(operation SqlOperation, table []string, query string, err error, rows *sql.Rows, sqlResult sql.Result) error {
 	if err == nil && dbr.successEventHandler != nil {
 		if err := dbr.successEventHandler(operation, table, query, rows, sqlResult); err != nil {
 			return err

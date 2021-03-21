@@ -116,6 +116,22 @@ func (stmt *StmtSelect) FullJoin(table interface{}, onQuery string, values ...in
 	return stmt
 }
 
+func (stmt *StmtSelect) CrossJoin(table interface{}, onQuery string, values ...interface{}) *StmtSelect {
+	stmt.joins = append(stmt.joins, newStmtJoin(stmt.Db, constFunctionCrossJoin, newTable(stmt.Db, table),
+		&condition{
+			operator: OperatorAnd,
+			query:    onQuery,
+			values:   values,
+			db:       stmt.Db,
+		}))
+	return stmt
+}
+
+func (stmt *StmtSelect) NaturalJoin(table interface{}) *StmtSelect {
+	stmt.joins = append(stmt.joins, newStmtJoin(stmt.Db, constFunctionNaturalJoin, newTable(stmt.Db, table), nil))
+	return stmt
+}
+
 func (stmt *StmtSelect) Distinct(column ...interface{}) *StmtSelect {
 	stmt.isDistinct = true
 	stmt.distinctColumns.list = append(stmt.distinctColumns.list, column...)
@@ -128,17 +144,22 @@ func (stmt *StmtSelect) DistinctOn(column ...interface{}) *StmtSelect {
 }
 
 func (stmt *StmtSelect) Union(stmtUnion *StmtSelect) *StmtSelect {
-	stmt.unions = append(stmt.unions, &union{unionType: constFunctionUnionNormal, stmt: stmtUnion})
+	stmt.unions = append(stmt.unions, &union{unionType: constFunctionUnion, stmt: stmtUnion})
 	return stmt
 }
 
-func (stmt *StmtSelect) Intersect(stmtUnion *StmtSelect) *StmtSelect {
-	stmt.unions = append(stmt.unions, &union{unionType: constFunctionUnionIntersect, stmt: stmtUnion})
+func (stmt *StmtSelect) UnionAll(stmtUnionAll *StmtSelect) *StmtSelect {
+	stmt.unions = append(stmt.unions, &union{unionType: constFunctionUnionAll, stmt: stmtUnionAll})
 	return stmt
 }
 
-func (stmt *StmtSelect) Except(stmtUnion *StmtSelect) *StmtSelect {
-	stmt.unions = append(stmt.unions, &union{unionType: constFunctionUnionExcept, stmt: stmtUnion})
+func (stmt *StmtSelect) Intersect(stmtIntersect *StmtSelect) *StmtSelect {
+	stmt.unions = append(stmt.unions, &union{unionType: constFunctionIntersect, stmt: stmtIntersect})
+	return stmt
+}
+
+func (stmt *StmtSelect) Except(stmtExcept *StmtSelect) *StmtSelect {
+	stmt.unions = append(stmt.unions, &union{unionType: constFunctionExcept, stmt: stmtExcept})
 	return stmt
 }
 
@@ -359,8 +380,10 @@ func (stmt *StmtSelect) Load(object interface{}) (int, error) {
 		return 0, err
 	}
 
-	if err := stmt.Dbr.eventHandler(stmt.sqlOperation, stmt.tables.toArray(), query, err, rows, nil); err != nil {
-		return 0, err
+	if stmt.Dbr.isEnabledEventHandler {
+		if err := stmt.Dbr.eventHandler(stmt.sqlOperation, stmt.tables.toArray(), query, err, rows, nil); err != nil {
+			return 0, err
+		}
 	}
 
 	defer rows.Close()

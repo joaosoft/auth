@@ -1,7 +1,8 @@
 package wst
 
 const (
-	constHeaderTypeJwt = "JWT"
+	HeaderTypeJwt = "JWT"
+	HeaderTypeWst = "WST"
 
 	HeaderTypeKey        = "typ"
 	HeaderAlgorithmKey   = "alg"

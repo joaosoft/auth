@@ -19,13 +19,9 @@ func newColumns(db *db, encode bool) *columns {
 	}
 }
 
-func (c columns) Build() (string, error) {
-
-	var query string
+func (c columns) Build() (query string, err error) {
 
 	lenC := len(c.list)
-	var err error
-
 	for i, item := range c.list {
 		var value string
 

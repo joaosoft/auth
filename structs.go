@@ -6,19 +6,31 @@ import (
 	"time"
 )
 
+type getSessionRequest struct {
+	Email    string `json:"email" validate:"not-empty, error={{ErrorInvalidBodyParameter}}"`
+	Password string `json:"password" validate:"not-empty, error={{ErrorInvalidBodyParameter}}"`
+}
+
+type refreshSessionRequest struct {
+	Authorization string `json:"authorization" validate:"not-empty"`
+}
+
+type updateUserStatusRequest struct {
+	IdUser string `json:"id_user" db:"id_user" validate:"not-empty"`
+}
+
+type signUpRequest struct {
+	FirstName       string `json:"first_name" db:"first_name" validate:"not-empty, error={{ErrorInvalidBodyParameter}}"`
+	LastName        string `json:"last_name" db:"last_name" validate:"not-empty, error={{ErrorInvalidBodyParameter}}"`
+	Email           string `json:"email" db:"email" validate:"not-empty, email, error={{ErrorInvalidBodyParameter}}" `
+	Password        string `json:"password" validate:"id=password, not-empty, error={{ErrorInvalidBodyParameter}}"`
+	PasswordConfirm string `json:"password_confirm" validate:"not-empty, value={password}, error={{ErrorInvalidBodyParameter}}"`
+}
+
 type ErrorResponse struct {
 	Code    web.Status `json:"code,omitempty"`
 	Message string     `json:"message,omitempty"`
 	Cause   string     `json:"cause,omitempty"`
-}
-
-type GetSessionRequest struct {
-	Email    string `json:"email" validate:"notzero, error={InvalidBodyParameter}"`
-	Password string `json:"password" validate:"notzero, error={InvalidBodyParameter}"`
-}
-
-type RefreshSessionRequest struct {
-	Authorization string `json:"authorization" validate:"notzero"`
 }
 
 type SessionResponse struct {
@@ -27,20 +39,8 @@ type SessionResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-type SignUpRequest struct {
-	FirstName       string `json:"first_name" db:"first_name" validate:"notzero, error={InvalidBodyParameter}"`
-	LastName        string `json:"last_name" db:"last_name" validate:"notzero, error={InvalidBodyParameter}"`
-	Email           string `json:"email" db:"email" validate:"notzero, email, error={InvalidBodyParameter}" `
-	Password        string `json:"password" validate:"id=password, notzero, error={InvalidBodyParameter}"`
-	PasswordConfirm string `json:"password_confirm" validate:"notzero, value={password}, error={InvalidBodyParameter}"`
-}
-
 type SignUpResponse struct {
 	IdUser string `json:"id_user" db:"id_user"`
-}
-
-type ChangeUserStatusRequest struct {
-	IdUser string `json:"id_user" db:"id_user" validate:"notzero"`
 }
 
 type User struct {

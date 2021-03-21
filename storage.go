@@ -6,24 +6,24 @@ import (
 	"github.com/joaosoft/dbr"
 )
 
-type StoragePostgres struct {
+type storagePostgres struct {
 	config *AuthConfig
 	db     *dbr.Dbr
 }
 
-func NewStoragePostgres(config *AuthConfig) (*StoragePostgres, error) {
+func newStoragePostgres(config *AuthConfig) (*storagePostgres, error) {
 	dbr, err := dbr.New(dbr.WithConfiguration(config.Dbr))
 	if err != nil {
 		return nil, err
 	}
 
-	return &StoragePostgres{
+	return &storagePostgres{
 		config: config,
 		db:     dbr,
 	}, nil
 }
 
-func (storage *StoragePostgres) GetUserByIdUserAndRefreshToken(idUser, refreshToken string) (*User, error) {
+func (storage *storagePostgres) getUserByIdUserAndRefreshToken(idUser, refreshToken string) (*User, error) {
 	user := &User{}
 	count, err := storage.db.
 		Select("*").
@@ -44,7 +44,7 @@ func (storage *StoragePostgres) GetUserByIdUserAndRefreshToken(idUser, refreshTo
 	return user, nil
 }
 
-func (storage *StoragePostgres) GetUserByEmailAndPassword(email, password string) (*User, error) {
+func (storage *storagePostgres) getUserByEmailAndPassword(email, password string) (*User, error) {
 	user := &User{}
 	count, err := storage.db.
 		Select("*").
@@ -65,7 +65,7 @@ func (storage *StoragePostgres) GetUserByEmailAndPassword(email, password string
 	return user, nil
 }
 
-func (storage *StoragePostgres) UpdateUserRefreshToken(idUser, refreshToken string) error {
+func (storage *storagePostgres) updateUserRefreshToken(idUser, refreshToken string) error {
 	result, err := storage.db.
 		Update(authTableUser).
 		Set("refresh_token", refreshToken).
@@ -86,7 +86,7 @@ func (storage *StoragePostgres) UpdateUserRefreshToken(idUser, refreshToken stri
 	return nil
 }
 
-func (storage *StoragePostgres) SignUp(user *User) error {
+func (storage *storagePostgres) signUp(user *User) error {
 	result, err := storage.db.
 		Insert().Into(authTableUser).
 		Record(user).
@@ -104,7 +104,7 @@ func (storage *StoragePostgres) SignUp(user *User) error {
 	return nil
 }
 
-func (storage *StoragePostgres) ChangeUserStatus(idUser string, isActive bool) error {
+func (storage *storagePostgres) updateUserStatus(idUser string, isActive bool) error {
 	result, err := storage.db.
 		Update(authTableUser).
 		Set("active", isActive).

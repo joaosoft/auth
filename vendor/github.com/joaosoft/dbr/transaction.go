@@ -72,10 +72,10 @@ func (tx *Transaction) Execute(query string) *StmtExecute {
 	return newStmtExecute(tx.dbr, tx.dbr.Connections.Write, query)
 }
 
-func (tx *Transaction) With(name string, builder builder) *StmtWith {
+func (tx *Transaction) With(name string, builder Builder) *StmtWith {
 	return newStmtWith(tx.dbr, tx.dbr.Connections, name, false, builder)
 }
 
-func (tx *Transaction) WithRecursive(name string, builder builder) *StmtWith {
+func (tx *Transaction) WithRecursive(name string, builder Builder) *StmtWith {
 	return newStmtWith(tx.dbr, tx.dbr.Connections, name, true, builder)
 }

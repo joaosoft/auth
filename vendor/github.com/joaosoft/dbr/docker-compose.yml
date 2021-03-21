@@ -1,4 +1,4 @@
-version: '3.3'
+docker oversion: '3.3'
 services:
 
   home.postgres:

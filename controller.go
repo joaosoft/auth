@@ -7,20 +7,20 @@ import (
 	"github.com/joaosoft/web"
 )
 
-type Controller struct {
-	config     *AuthConfig
-	interactor *Interactor
+type controller struct {
+	config *AuthConfig
+	model  *model
 }
 
-func NewController(config *AuthConfig, interactor *Interactor) *Controller {
-	return &Controller{
-		config:     config,
-		interactor: interactor,
+func newController(config *AuthConfig, model *model) *controller {
+	return &controller{
+		config: config,
+		model:  model,
 	}
 }
 
-func (c *Controller) GetSessionHandler(ctx *web.Context) error {
-	request := &GetSessionRequest{}
+func (c *controller) getSession(ctx *web.Context) error {
+	request := &getSessionRequest{}
 
 	err := ctx.Request.BindParams(&request)
 	if err != nil {
@@ -36,7 +36,7 @@ func (c *Controller) GetSessionHandler(ctx *web.Context) error {
 		return ctx.Response.JSON(web.StatusBadRequest, errs)
 	}
 
-	response, err := c.interactor.GetSession(request)
+	response, err := c.model.getSession(request)
 	if err != nil {
 		return ctx.Response.JSON(web.StatusInternalServerError, ErrorResponse{Code: web.StatusInternalServerError, Message: err.Error()})
 	}
@@ -44,8 +44,8 @@ func (c *Controller) GetSessionHandler(ctx *web.Context) error {
 	return ctx.Response.JSON(web.StatusOK, response)
 }
 
-func (c *Controller) RefreshSessionHandler(ctx *web.Context) error {
-	request := &RefreshSessionRequest{
+func (c *controller) refreshSession(ctx *web.Context) error {
+	request := &refreshSessionRequest{
 		Authorization: ctx.Request.GetHeader(web.HeaderAuthorization),
 	}
 
@@ -53,7 +53,7 @@ func (c *Controller) RefreshSessionHandler(ctx *web.Context) error {
 		return ctx.Response.JSON(web.StatusBadRequest, errs)
 	}
 
-	response, err := c.interactor.RefreshToken(request)
+	response, err := c.model.refreshToken(request)
 	if err != nil {
 		return ctx.Response.JSON(web.StatusInternalServerError, ErrorResponse{Code: web.StatusInternalServerError, Message: err.Error()})
 	}
@@ -61,8 +61,8 @@ func (c *Controller) RefreshSessionHandler(ctx *web.Context) error {
 	return ctx.Response.JSON(web.StatusOK, response)
 }
 
-func (c *Controller) SignUpHandler(ctx *web.Context) error {
-	request := &SignUpRequest{}
+func (c *controller) signUp(ctx *web.Context) error {
+	request := &signUpRequest{}
 
 	err := ctx.Request.Bind(&request)
 	if err != nil {
@@ -73,7 +73,7 @@ func (c *Controller) SignUpHandler(ctx *web.Context) error {
 		return ctx.Response.JSON(web.StatusBadRequest, errs)
 	}
 
-	response, err := c.interactor.SignUp(request)
+	response, err := c.model.signUp(request)
 	if err != nil {
 		return ctx.Response.JSON(web.StatusInternalServerError, ErrorResponse{Code: web.StatusInternalServerError, Message: err.Error()})
 	}
@@ -81,8 +81,8 @@ func (c *Controller) SignUpHandler(ctx *web.Context) error {
 	return ctx.Response.JSON(web.StatusCreated, response)
 }
 
-func (c *Controller) DeactivateUserHandler(ctx *web.Context) error {
-	request := &ChangeUserStatusRequest{
+func (c *controller) deactivateUser(ctx *web.Context) error {
+	request := &updateUserStatusRequest{
 		IdUser: ctx.Request.GetUrlParam("id_user"),
 	}
 
@@ -95,7 +95,7 @@ func (c *Controller) DeactivateUserHandler(ctx *web.Context) error {
 		return ctx.Response.JSON(web.StatusBadRequest, errs)
 	}
 
-	err = c.interactor.ChangeUserStatus(request.IdUser, false)
+	err = c.model.updateUserStatus(request.IdUser, false)
 	if err != nil {
 		return ctx.Response.JSON(web.StatusInternalServerError, ErrorResponse{Code: web.StatusInternalServerError, Message: err.Error()})
 	}

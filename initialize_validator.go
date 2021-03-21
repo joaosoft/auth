@@ -17,8 +17,8 @@ func initValidator() {
 		SetErrorCodeHandler(ErrorHandler)
 }
 
-var errs = map[string]errors.Err{
-	"InvalidBodyParameter": *ErrorInvalidBodyParameter,
+var errs = map[string]*errors.Error{
+	"InvalidBodyParameter": ErrorInvalidBodyParameter,
 }
 
 var ErrorHandler = func(context *validator.ValidatorContext, validationData *validator.ValidationData) error {
@@ -32,10 +32,10 @@ var ErrorHandler = func(context *validator.ValidatorContext, validationData *val
 				validationData.ErrorData.Arguments = append(validationData.ErrorData.Arguments, validationData.Name)
 			}
 
-			err = *err.Format(validationData.ErrorData.Arguments...)
+			err = err.Format(validationData.ErrorData.Arguments...)
 		}
 
-		return &err
+		return err
 	}
 	return nil
 }

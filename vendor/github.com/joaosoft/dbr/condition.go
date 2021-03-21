@@ -13,18 +13,15 @@ type condition struct {
 	db *db
 }
 
-func newCondition(db *db, operator operator, query string, values ...interface{}) *condition {
+func newCondition(db *db, operator operator, query interface{}, values ...interface{}) *condition {
 	return &condition{operator: OperatorAnd, query: query, values: values, db: db}
 }
 
-func (c *condition) Build(db ...*db) (string, error) {
+func (c *condition) Build(db ...*db) (query string, err error) {
 
 	if len(db) > 0 {
 		c.db = db[0]
 	}
-
-	var query string
-	var err error
 
 	switch stmt := c.query.(type) {
 	case *StmtSelect:
@@ -34,7 +31,7 @@ func (c *condition) Build(db ...*db) (string, error) {
 		}
 		query = fmt.Sprintf("(%s)", query)
 	default:
-		if impl, ok := stmt.(ifunction); ok {
+		if impl, ok := stmt.(iFunction); ok {
 			query, err = impl.Build(c.db)
 			if err != nil {
 				return "", err
@@ -60,7 +57,7 @@ func (c *condition) Build(db ...*db) (string, error) {
 			}
 			value = fmt.Sprintf("(%s)", value)
 		default:
-			if impl, ok := stmt.(ifunction); ok {
+			if impl, ok := stmt.(iFunction); ok {
 				value, err = impl.Build(c.db)
 				if err != nil {
 					return "", err

@@ -12,7 +12,7 @@ type StmtWith struct {
 	connections *connections
 }
 
-func newStmtWith(dbr *Dbr, connections *connections, name string, isRecursive bool, builder builder) *StmtWith {
+func newStmtWith(dbr *Dbr, connections *connections, name string, isRecursive bool, builder Builder) *StmtWith {
 	return &StmtWith{
 		dbr:         dbr,
 		connections: connections,
@@ -21,7 +21,7 @@ func newStmtWith(dbr *Dbr, connections *connections, name string, isRecursive bo
 	}
 }
 
-func (w *StmtWith) With(name string, builder builder) *StmtWith {
+func (w *StmtWith) With(name string, builder Builder) *StmtWith {
 	w.withs = append(w.withs, &with{name: name, builder: builder})
 
 	return w
@@ -62,8 +62,5 @@ func (w *StmtWith) Build() (string, error) {
 		recursive = fmt.Sprintf("%s ", constFunctionRecursive)
 	}
 
-	// query
-	query := fmt.Sprintf("%s %s%s", constFunctionWith, recursive, withs)
-
-	return query, nil
+	return fmt.Sprintf("%s %s%s", constFunctionWith, recursive, withs), nil
 }

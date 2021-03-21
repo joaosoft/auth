@@ -45,20 +45,20 @@ func (e *ExecutorRabbitMq) Execute(arg interface{}, args ...interface{}) error {
 		url += fmt.Sprintf("/%s", *e.service.config.RabbitMq.VHost)
 	}
 
-	request, err := e.client.NewRequest(web.MethodPost, url)
+	request, err := e.client.NewRequest(web.MethodPost, url, web.ContentTypeApplicationJSON, nil)
 	if err != nil {
 		return err
 	}
 
 	request.Headers["Authorization"] = []string{"Basic Zm91cnNvdXJjZTpmNHMwdTQ1ZQ=="}
 
-	response, err := request.WithBody([]byte(arg.(string)), web.ContentTypeApplicationJSON).Send()
+	response, err := request.WithBody([]byte(arg.(string))).Send()
 	if err != nil {
 		return err
 	}
 
 	if response.Status >= web.StatusBadRequest {
-		return errors.New(errors.ErrorLevel, 0, "error importing configurations to rabbitmq [status: %d, error: %s]", response.Status, string(response.Body))
+		return errors.New(errors.LevelError, 0, "error importing configurations to rabbitmq [status: %d, error: %s]", response.Status, string(response.Body))
 	}
 
 	return nil

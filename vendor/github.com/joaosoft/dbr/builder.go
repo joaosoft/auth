@@ -1,6 +1,6 @@
 package dbr
 
-type builder interface {
+type Builder interface {
 	Build() (string, error)
 }
 

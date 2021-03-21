@@ -13,13 +13,13 @@ type order struct {
 
 type orders []*order
 
-func (o orders) Build() (string, error) {
-	var query string
+func (o orders) Build() (query string, _ error) {
 	if len(o) == 0 {
 		return "", nil
 	}
 
 	query = fmt.Sprintf(" %s ", constFunctionOrderBy)
+
 	lenO := len(o)
 	for i, item := range o {
 		query += fmt.Sprintf("%s %s", item.column, item.direction)

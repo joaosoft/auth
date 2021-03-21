@@ -14,7 +14,6 @@ func newCaseWhen(condition *condition) *caseWhen {
 }
 
 func (c *caseWhen) Build(db *db) (string, error) {
-	var query string
 	var err error
 	var condition string
 	var result string
@@ -34,7 +33,7 @@ func (c *caseWhen) Build(db *db) (string, error) {
 		}
 		result = fmt.Sprintf("(%s)", result)
 	default:
-		if impl, ok := stmt.(ifunction); ok {
+		if impl, ok := stmt.(iFunction); ok {
 			result, err = impl.Build(db)
 			if err != nil {
 				return "", err
@@ -44,7 +43,5 @@ func (c *caseWhen) Build(db *db) (string, error) {
 		}
 	}
 
-	query = fmt.Sprintf("%s %s %s %s", constFunctionWhen, condition, constFunctionThen, result)
-
-	return query, nil
+	return fmt.Sprintf("%s %s %s %s", constFunctionWhen, condition, constFunctionThen, result), nil
 }

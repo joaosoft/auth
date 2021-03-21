@@ -23,10 +23,14 @@ func newStmtJoin(db *db, join Join, table *table, on *condition) *StmtJoin {
 	}
 }
 
-func (stmt *StmtJoin) Build() (string, error) {
-	condition, err := stmt.on.Build()
-	if err != nil {
-		return "", err
+func (stmt *StmtJoin) Build() (_ string, err error) {
+	var condition string
+
+	if stmt.on != nil {
+		condition, err = stmt.on.Build()
+		if err != nil {
+			return "", err
+		}
 	}
 
 	table, err := stmt.table.Build()
@@ -34,7 +38,5 @@ func (stmt *StmtJoin) Build() (string, error) {
 		return "", err
 	}
 
-	query := fmt.Sprintf("%s %s ON (%s)", stmt.join, table, condition)
-
-	return query, nil
+	return fmt.Sprintf("%s %s ON (%s)", stmt.join, table, condition), nil
 }

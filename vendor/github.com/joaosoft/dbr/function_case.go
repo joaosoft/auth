@@ -7,23 +7,24 @@ import (
 
 type functionCase struct {
 	alias   *string
-	onWhens caseWhens
-	onElse  *caseElse
+	onCase  *onCase
+	onWhens onCaseWhens
+	onElse  *onCaseElse
 
 	*functionBase
 }
 
-func newFunctionCase(alias ...string) *functionCase {
-	funcCase := &functionCase{functionBase: newFunctionBase(false, false), onWhens: newCaseWhens()}
-
-	if len(alias) > 0 {
-		funcCase.alias = &alias[0]
+func newFunctionCase(value ...interface{}) *functionCase {
+	funcCase := &functionCase{
+		functionBase: newFunctionBase(false, false),
+		onCase:       newCase(value...),
+		onWhens:      newCaseWhens(),
 	}
 
 	return funcCase
 }
 
-func (c *functionCase) When(query string, values ...interface{}) *functionCase {
+func (c *functionCase) When(query interface{}, values ...interface{}) *functionCase {
 	c.onWhens = append(c.onWhens, newCaseWhen(newCondition(nil, OperatorAnd, query, values...)))
 
 	return c
@@ -43,6 +44,12 @@ func (c *functionCase) Else(result interface{}) *functionCase {
 	return c
 }
 
+func (c *functionCase) As(alias string) *functionCase {
+	c.alias = &alias
+
+	return c
+}
+
 func (c *functionCase) Expression(db *db) (string, error) {
 	c.db = db
 	return "", nil
@@ -53,6 +60,12 @@ func (c *functionCase) Build(db *db) (string, error) {
 
 	var value string
 	var query string
+
+	onCase, err := c.onCase.Build(db)
+	if err != nil {
+		return "", err
+	}
+	value += onCase
 
 	onWhens, err := c.onWhens.Build(db)
 	if err != nil {

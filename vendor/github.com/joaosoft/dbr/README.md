@@ -44,6 +44,8 @@ The main goal of this project is to allow a application to write in a master dat
 * Every
 * IsNull
 * OnNull (on null, set a value)
+* Over
+* Filter
 * StringAgg
 * XmlAgg
 * ArrayAgg

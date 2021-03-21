@@ -19,10 +19,7 @@ func newStmtWhereExists(db *db, stmtSelect *StmtSelect, isNot bool) *StmtWhereEx
 	}
 }
 
-func (stmt *StmtWhereExists) Build() (string, error) {
-
-	var query string
-
+func (stmt *StmtWhereExists) Build() (query string, err error) {
 	stmtSelect, err := stmt.stmtSelect.Build()
 	if err != nil {
 		return "", err
@@ -32,7 +29,5 @@ func (stmt *StmtWhereExists) Build() (string, error) {
 		query += fmt.Sprintf("%s ", constFunctionNot)
 	}
 
-	query += fmt.Sprintf("%s (%s)", constFunctionExists, stmtSelect)
-
-	return query, nil
+	return fmt.Sprintf("%s (%s)", constFunctionExists, stmtSelect), nil
 }

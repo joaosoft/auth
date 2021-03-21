@@ -14,36 +14,33 @@ func handleExpression(base *functionBase, expression interface{}) (string, error
 		return value, nil
 	}
 
-	if stmt, ok := expression.(*StmtSelect); ok {
+	switch stmt := expression.(type) {
+	case *StmtSelect:
 		value, err = stmt.Build()
 		if err != nil {
 			return "", err
 		}
 		value = fmt.Sprintf("(%s)", value)
-
-		return value, nil
-	}
-
-	if stmt, ok := expression.(builder); ok {
+	case Builder:
 		value, err = stmt.Build()
 		if err != nil {
 			return "", nil
 		}
-
-		return value, nil
-	}
-
-	if stmt, ok := expression.(ifunction); ok {
+	case functionBuilder:
+		var err error
+		value, err = stmt.Build(base.db)
+		if err != nil {
+			return "", nil
+		}
+	case iFunction:
 		var err error
 		value, err = stmt.Expression(base.db)
 		if err != nil {
 			return "", nil
 		}
-
-		return value, nil
+	default:
+		value = fmt.Sprintf("%+v", expression)
 	}
-
-	value = fmt.Sprintf("%+v", expression)
 
 	return value, nil
 }
@@ -63,43 +60,40 @@ func handleBuild(base *functionBase, expression interface{}, encode ...bool) (st
 		return value, nil
 	}
 
-	if stmt, ok := expression.(*StmtSelect); ok {
+	switch stmt := expression.(type) {
+	case *StmtSelect:
 		value, err = stmt.Build()
 		if err != nil {
 			return "", err
 		}
 		value = fmt.Sprintf("(%s)", value)
-
-		return value, nil
-	}
-
-	if stmt, ok := expression.(builder); ok {
+	case Builder:
 		value, err = stmt.Build()
 		if err != nil {
 			return "", nil
 		}
-
-		return value, nil
-	}
-
-	if stmt, ok := expression.(functionBuilder); ok {
+	case functionBuilder:
 		var err error
 		value, err = stmt.Build(base.db)
 		if err != nil {
 			return "", nil
 		}
-
-		return value, nil
-	}
-
-	if theEncode {
-		if base.isColumn {
-			value = base.db.Dialect.EncodeColumn(expression)
-		} else {
-			value = base.db.Dialect.Encode(expression)
+	case iFunction:
+		var err error
+		value, err = stmt.Build(base.db)
+		if err != nil {
+			return "", nil
 		}
-	} else {
-		value = fmt.Sprintf("%+v", expression)
+	default:
+		if theEncode {
+			if base.isColumn {
+				value = base.db.Dialect.EncodeColumn(expression)
+			} else {
+				value = base.db.Dialect.Encode(expression)
+			}
+		} else {
+			value = fmt.Sprintf("%+v", expression)
+		}
 	}
 
 	return value, nil

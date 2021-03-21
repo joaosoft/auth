@@ -8,7 +8,7 @@ type onConflictType string
 type onConflictDoType string
 
 const (
-	onConflictColumn     onConflictType = "column"
+	onConflictColumn     onConflictType = "value"
 	onConflictConstraint onConflictType = "constraint"
 
 	onConflictDoNothing onConflictDoType = "nothing"

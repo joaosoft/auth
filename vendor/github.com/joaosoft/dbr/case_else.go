@@ -4,17 +4,15 @@ import (
 	"fmt"
 )
 
-type caseElse struct {
+type onCaseElse struct {
 	result interface{}
 }
 
-func newCaseElse(result interface{}) *caseElse {
-	return &caseElse{result: result}
+func newCaseElse(result interface{}) *onCaseElse {
+	return &onCaseElse{result: result}
 }
 
-func (c *caseElse) Build(db *db) (string, error) {
-	var query string
-	var err error
+func (c *onCaseElse) Build(db *db) (_ string, err error) {
 	var result string
 
 	// result
@@ -26,7 +24,7 @@ func (c *caseElse) Build(db *db) (string, error) {
 		}
 		result = fmt.Sprintf("(%s)", result)
 	default:
-		if impl, ok := stmt.(ifunction); ok {
+		if impl, ok := stmt.(iFunction); ok {
 			result, err = impl.Build(db)
 			if err != nil {
 				return "", err
@@ -36,7 +34,5 @@ func (c *caseElse) Build(db *db) (string, error) {
 		}
 	}
 
-	query = fmt.Sprintf("%s %s", constFunctionElse, result)
-
-	return query, nil
+	return fmt.Sprintf("%s %s", constFunctionElse, result), nil
 }

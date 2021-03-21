@@ -11,31 +11,31 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-type IStorageDB interface {
-	GetUserByEmailAndPassword(email, password string) (*User, error)
-	GetUserByIdUserAndRefreshToken(idUser, refreshToken string) (*User, error)
-	UpdateUserRefreshToken(idUser, refreshToken string) error
-	SignUp(user *User) error
-	ChangeUserStatus(idUser string, isActive bool) error
+type iStorageDB interface {
+	getUserByEmailAndPassword(email, password string) (*User, error)
+	getUserByIdUserAndRefreshToken(idUser, refreshToken string) (*User, error)
+	updateUserRefreshToken(idUser, refreshToken string) error
+	signUp(user *User) error
+	updateUserStatus(idUser string, isActive bool) error
 }
 
-type Interactor struct {
+type model struct {
 	config  *AuthConfig
-	storage IStorageDB
+	storage iStorageDB
 }
 
-func NewInteractor(config *AuthConfig, storageDB IStorageDB) *Interactor {
-	return &Interactor{
+func newModel(config *AuthConfig, storageDB iStorageDB) *model {
+	return &model{
 		config:  config,
 		storage: storageDB,
 	}
 }
 
-func (i *Interactor) newToken(user *User) (string, error) {
-	expirateAt := time.Now().Add(time.Minute * time.Duration(i.config.ExpirationMinutes)).Unix()
+func (i *model) newToken(user *User) (string, error) {
+	expireAt := time.Now().Add(time.Minute * time.Duration(i.config.ExpirationMinutes)).Unix()
 
 	claims := wst.Claims{
-		wst.ClaimsExpireAtKey: expirateAt,
+		wst.ClaimsExpireAtKey: expireAt,
 		wst.ClaimsAudienceKey: "auth",
 		wst.ClaimsSubjectKey:  "get-token",
 		claimsIdUser:          user.IdUser,
@@ -43,7 +43,7 @@ func (i *Interactor) newToken(user *User) (string, error) {
 	return wst.New(wst.SignatureHS384, wst.EncodeAscii85, wst.EncodeBase64, wst.EncodeHexadecimal).Generate(claims, i.config.TokenKey)
 }
 
-func (i *Interactor) newRefreshToken(user *User) (string, error) {
+func (i *model) newRefreshToken(user *User) (string, error) {
 	jwtId, _ := uuid.NewV4()
 
 	claims := wst.Claims{
@@ -56,10 +56,10 @@ func (i *Interactor) newRefreshToken(user *User) (string, error) {
 	return wst.New(wst.SignatureHS384, wst.EncodeAscii85, wst.EncodeBase64, wst.EncodeHexadecimal).Generate(claims, i.config.TokenKey)
 }
 
-func (i *Interactor) GetSession(request *GetSessionRequest) (*SessionResponse, error) {
-	log.WithFields(map[string]interface{}{"method": "GetSession"})
+func (i *model) getSession(request *getSessionRequest) (*SessionResponse, error) {
+	log.WithFields(map[string]interface{}{"method": "getSession"})
 	log.Infof("getting user session [email: %s]", request.Email)
-	user, err := i.storage.GetUserByEmailAndPassword(request.Email, fmt.Sprintf("%x", md5.Sum([]byte(request.Password))),)
+	user, err := i.storage.getUserByEmailAndPassword(request.Email, fmt.Sprintf("%x", md5.Sum([]byte(request.Password))))
 	if err != nil {
 		log.WithFields(map[string]interface{}{"error": err.Error()}).
 			Errorf("error getting user session [email: %s] %s", request.Email, err).ToError()
@@ -79,7 +79,7 @@ func (i *Interactor) GetSession(request *GetSessionRequest) (*SessionResponse, e
 	}
 
 	// set user refresh token
-	if err := i.storage.UpdateUserRefreshToken(user.IdUser, refreshToken); err != nil {
+	if err := i.storage.updateUserRefreshToken(user.IdUser, refreshToken); err != nil {
 		return nil, err
 	}
 
@@ -90,7 +90,7 @@ func (i *Interactor) GetSession(request *GetSessionRequest) (*SessionResponse, e
 	}, nil
 }
 
-func (i *Interactor) loadUserFromRefreshToken(request *RefreshSessionRequest) (*User, error) {
+func (i *model) loadUserFromRefreshToken(request *refreshSessionRequest) (*User, error) {
 	tokenString := strings.Replace(request.Authorization, "Bearer ", "", 1)
 
 	keyFunc := func(*wst.Token) (interface{}, error) {
@@ -113,15 +113,15 @@ func (i *Interactor) loadUserFromRefreshToken(request *RefreshSessionRequest) (*
 	}
 
 	if idUser, ok := claims[claimsIdUser]; ok {
-		user, err := i.storage.GetUserByIdUserAndRefreshToken(idUser.(string), tokenString)
+		user, err := i.storage.getUserByIdUserAndRefreshToken(idUser.(string), tokenString)
 		return user, err
 	}
 
 	return nil, wst.ErrorInvalidAuthorization
 }
 
-func (i *Interactor) RefreshToken(request *RefreshSessionRequest) (*SessionResponse, error) {
-	log.WithFields(map[string]interface{}{"method": "RefreshToken"})
+func (i *model) refreshToken(request *refreshSessionRequest) (*SessionResponse, error) {
+	log.WithFields(map[string]interface{}{"method": "refreshToken"})
 
 	// load refresh token
 	user, err := i.loadUserFromRefreshToken(request)
@@ -154,7 +154,7 @@ func (i *Interactor) RefreshToken(request *RefreshSessionRequest) (*SessionRespo
 		return nil, wst.ErrorInvalidAuthorization
 	}
 
-	if err := i.storage.UpdateUserRefreshToken(user.IdUser, newRefreshToken); err != nil {
+	if err := i.storage.updateUserRefreshToken(user.IdUser, newRefreshToken); err != nil {
 		log.WithFields(map[string]interface{}{"error": err.Error()}).
 			Errorf("error updating refresh token of user %s on storage database %s", user.IdUser, err).ToError()
 		return nil, err
@@ -167,13 +167,13 @@ func (i *Interactor) RefreshToken(request *RefreshSessionRequest) (*SessionRespo
 	}, nil
 }
 
-func (i *Interactor) SignUp(request *SignUpRequest) (*SignUpResponse, error) {
-	log.WithFields(map[string]interface{}{"method": "SignUp"})
+func (i *model) signUp(request *signUpRequest) (*SignUpResponse, error) {
+	log.WithFields(map[string]interface{}{"method": "signUp"})
 	log.Infof("sign-up user [email: %s]", request.Email)
 
 	now := time.Now()
 	id := genUI()
-	err := i.storage.SignUp(&User{
+	err := i.storage.signUp(&User{
 		IdUser:       id,
 		FirstName:    request.FirstName,
 		LastName:     request.LastName,
@@ -194,14 +194,14 @@ func (i *Interactor) SignUp(request *SignUpRequest) (*SignUpResponse, error) {
 	}, nil
 }
 
-func (i *Interactor) ChangeUserStatus(idUser string, isActive bool) error {
-	log.WithFields(map[string]interface{}{"method": "SignUp"})
-	log.Infof("change user status [id: %s, active: %t]", idUser, isActive)
+func (i *model) updateUserStatus(idUser string, isActive bool) error {
+	log.WithFields(map[string]interface{}{"method": "signUp"})
+	log.Infof("update user status [id: %s, active: %t]", idUser, isActive)
 
-	err := i.storage.ChangeUserStatus(idUser, isActive)
+	err := i.storage.updateUserStatus(idUser, isActive)
 	if err != nil {
 		log.WithFields(map[string]interface{}{"error": err.Error()}).
-			Errorf("error deactivate user [id: %s, active: %t] %s", idUser, isActive, err).ToError()
+			Errorf("error update user status [id: %s, active: %t] %s", idUser, isActive, err).ToError()
 		return err
 	}
 

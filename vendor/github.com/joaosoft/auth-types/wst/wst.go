@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	ErrorInvalidAuthorization   = errors.New(errors.ErrorLevel, http.StatusUnauthorized, "invalid authorization")
-	ErrorInvalidSignatureMethod = errors.New(errors.ErrorLevel, http.StatusUnauthorized, "invalid signature method")
-	ErrorInvalidJwtAlgorithm    = errors.New(errors.ErrorLevel, http.StatusUnauthorized, "invalid signature method")
-	ErrorClaimsValidation       = errors.New(errors.ErrorLevel, http.StatusUnauthorized, "error on claims validation")
-	ErrorCipherTextTooShort     = errors.New(errors.ErrorLevel, http.StatusUnauthorized, "cipher text too short")
+	ErrorInvalidAuthorization   = errors.New(errors.LevelError, http.StatusUnauthorized, "invalid authorization")
+	ErrorInvalidSignatureMethod = errors.New(errors.LevelError, http.StatusUnauthorized, "invalid signature method")
+	ErrorInvalidJwtAlgorithm    = errors.New(errors.LevelError, http.StatusUnauthorized, "invalid signature method")
+	ErrorClaimsValidation       = errors.New(errors.LevelError, http.StatusUnauthorized, "error on claims validation")
+	ErrorCipherTextTooShort     = errors.New(errors.LevelError, http.StatusUnauthorized, "cipher text too short")
 )
 
 type KeyFunc func(*Token) (interface{}, error)
@@ -47,7 +47,7 @@ func New(signature signature, encoderType encodeType, encoderTypes ...encodeType
 
 	return &Token{
 		headers: map[string]interface{}{
-			HeaderTypeKey:      constHeaderTypeJwt,
+			HeaderTypeKey:      HeaderTypeWst,
 			HeaderAlgorithmKey: method.Algorithm(),
 		},
 		claims:   Claims{},
@@ -112,7 +112,7 @@ func (t *Token) Check(tokenString string, keyFunc KeyFunc, checkFunc CheckFunc, 
 		return false, err
 	}
 
-	// Claims
+	// claims
 	token.claims = claims
 
 	decodedClaims, err := t.decode(split[1])
@@ -140,7 +140,7 @@ func (t *Token) Check(tokenString string, keyFunc KeyFunc, checkFunc CheckFunc, 
 		return false, err
 	}
 
-	// Claims
+	// claims
 	if !skipClaims {
 		if !claims.Validate() {
 			return false, ErrorClaimsValidation

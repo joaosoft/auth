@@ -46,7 +46,5 @@ func (c *functionField) Build(db *db) (string, error) {
 		}
 	}
 
-	query := fmt.Sprintf("%s %s(%s)", field, c.name, arguments)
-
-	return query, nil
+	return fmt.Sprintf("%s %s(%s)", field, c.name, arguments), nil
 }

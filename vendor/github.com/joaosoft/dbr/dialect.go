@@ -1,35 +1,50 @@
 package dbr
 
-import "time"
+import (
+	"reflect"
+	"time"
+)
 
-type DialectName string
+type dialectName string
 
 var (
-	DialectPostgres = &dialectPostgres{}
-	DialectMySql    = &dialectMySql{}
-	DialectSqlLite3 = &dialectSqlLite3{}
+	availableDialects = map[dialectName]dialect{
+		constDialectPostgres: &dialectPostgres{},
+		constDialectMysql:    &dialectMySql{},
+		constDialectSqlLite3: &dialectSqlLite3{},
+	}
 )
 
 type dialect interface {
 	Name() string
-	Encode(i interface{}) string
-	EncodeString(s string) string
-	EncodeBool(b bool) string
-	EncodeTime(t time.Time) string
-	EncodeBytes(b []byte) string
+	Encode(value interface{}) string
+	EncodeString(value string) string
+	EncodeBool(value bool) string
+	EncodeTime(value time.Time) string
+	EncodeBytes(value []byte) string
 	EncodeColumn(column interface{}) string
 	Placeholder() string
 }
 
-func NewDialect(name string) dialect {
-	switch name {
-	case string(constDialectPostgres):
-		return DialectPostgres
-	case string(constDialectMysql):
-		return DialectMySql
-	case string(constDialectSqlLite3):
-		return DialectSqlLite3
+func newDialect(name dialectName) (dialect, error) {
+	dialect, found := availableDialects[name]
+	if !found {
+		return nil, ErrorDialectNotFound
 	}
 
-	return nil
+	return dialect, nil
+}
+
+func getValue(value reflect.Value) (isNull bool, _ reflect.Value) {
+again:
+	if value.Kind() == reflect.Ptr || value.Kind() == reflect.Interface {
+		if value.IsNil() {
+			return true, value
+		}
+
+		value = value.Elem()
+		goto again
+	}
+
+	return false, value
 }

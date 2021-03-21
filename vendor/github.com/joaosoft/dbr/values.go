@@ -16,11 +16,8 @@ func newValues(db *db) *values {
 	}
 }
 
-func (v values) Build() (string, error) {
-	var query string
-
+func (v values) Build() (query string, err error) {
 	lenV := len(v.list)
-	var err error
 	var withoutParentheses bool
 
 	for i, item := range v.list {

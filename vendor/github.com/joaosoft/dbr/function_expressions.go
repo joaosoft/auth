@@ -93,7 +93,5 @@ func (c *functionExpressions) Build(db *db) (string, error) {
 		}
 	}
 
-	query := fmt.Sprintf("%s", expressions)
-
-	return query, nil
+	return  fmt.Sprintf("%s", expressions), nil
 }

@@ -57,15 +57,15 @@ func NewAuth(options ...AuthOption) (*Auth, error) {
 
 	web := service.pm.NewSimpleWebServer(config.Auth.Host)
 
-	storage, err := NewStoragePostgres(config.Auth)
+	storage, err := newStoragePostgres(config.Auth)
 	if err != nil {
 		return nil, err
 	}
 
-	interactor := NewInteractor(config.Auth, storage)
+	interactor := newModel(config.Auth, storage)
 
-	controller := NewController(config.Auth, interactor)
-	controller.RegisterRoutes(web)
+	controller := newController(config.Auth, interactor)
+	controller.registerRoutes(web)
 
 	service.pm.AddWeb("api_web", web)
 

@@ -28,10 +28,14 @@ func SetSanitize(sanitize []string) *Validator {
 	return validatorInstance.SetSanitize(sanitize)
 }
 
+func SetPwdSettings(settings *PwdSettings) *Validator {
+	return validatorInstance.SetPwdSettings(settings)
+}
+
 func AddCallback(name string, callback callbackHandler) *Validator {
 	return validatorInstance.AddCallback(name, callback)
 }
 
-func Validate(obj interface{}, args ...*Argument) []error {
+func Validate(obj interface{}, args ...*argument) []error {
 	return NewValidatorHandler(validatorInstance, args...).handleValidation(obj)
 }

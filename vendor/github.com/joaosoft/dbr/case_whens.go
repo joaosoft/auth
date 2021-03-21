@@ -4,15 +4,13 @@ import (
 	"fmt"
 )
 
-type caseWhens []*caseWhen
+type onCaseWhens []*caseWhen
 
-func newCaseWhens() caseWhens {
-	return make(caseWhens, 0)
+func newCaseWhens() onCaseWhens {
+	return make(onCaseWhens, 0)
 }
 
-func (c caseWhens) Build(db *db) (string, error) {
-	var query string
-
+func (c onCaseWhens) Build(db *db) (query string, err error) {
 	if len(c) == 0 {
 		return "", nil
 	}

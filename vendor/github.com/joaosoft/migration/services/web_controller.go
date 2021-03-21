@@ -58,7 +58,7 @@ func (controller *Controller) CreateMigrationHandler(ctx echo.Context) error {
 	}
 
 	if errs := validator.Validate(request.Body); len(errs) > 0 {
-		newErr := errors.New(errors.ErrorLevel, 0, errs)
+		newErr := errors.New(errors.LevelError, 0, errs)
 		controller.logger.WithFields(map[string]interface{}{"error": newErr.Error(), "cause": newErr.Cause()}).
 			Error("error when validating body request").ToError()
 		return ctx.JSON(http.StatusBadRequest, ErrorResponse{Code: http.StatusBadRequest, Message: newErr.Error(), Cause: newErr.Cause()})
@@ -68,7 +68,7 @@ func (controller *Controller) CreateMigrationHandler(ctx echo.Context) error {
 		IdMigration: request.Body.IdMigration,
 	}
 	if err := controller.interactor.CreateMigration(&newMigration); err != nil {
-		newErr := errors.New(errors.ErrorLevel, 0, err)
+		newErr := errors.New(errors.LevelError, 0, err)
 		controller.logger.WithFields(map[string]interface{}{"error": newErr.Error(), "cause": newErr.Cause()}).
 			Errorf("error creating process %s", request.Body.IdMigration).ToError()
 		return ctx.JSON(http.StatusBadRequest, ErrorResponse{Code: http.StatusBadRequest, Message: newErr.Error(), Cause: newErr.Cause()})
@@ -83,14 +83,14 @@ func (controller *Controller) DeleteMigrationHandler(ctx echo.Context) error {
 	}
 
 	if errs := validator.Validate(request); len(errs) > 0 {
-		newErr := errors.New(errors.ErrorLevel, 0, errs)
+		newErr := errors.New(errors.LevelError, 0, errs)
 		controller.logger.WithFields(map[string]interface{}{"error": newErr.Error(), "cause": newErr.Cause()}).
 			Error("error when validating body request").ToError()
 		return ctx.JSON(http.StatusBadRequest, ErrorResponse{Code: http.StatusBadRequest, Message: newErr.Error(), Cause: newErr.Cause()})
 	}
 
 	if err := controller.interactor.DeleteMigration(request.IdMigration); err != nil {
-		newErr := errors.New(errors.ErrorLevel, 0, err)
+		newErr := errors.New(errors.LevelError, 0, err)
 		controller.logger.WithFields(map[string]interface{}{"error": newErr.Error(), "cause": newErr.Cause()}).
 			Errorf("error deleting process by id %s", request.IdMigration).ToError()
 		return ctx.JSON(http.StatusBadRequest, ErrorResponse{Code: http.StatusBadRequest, Message: newErr.Error(), Cause: newErr.Cause()})

@@ -13,7 +13,7 @@ import (
 	errors "github.com/joaosoft/errors"
 )
 
-func GetEnv() string {
+func getEnv() string {
 	env := os.Getenv("env")
 	if env == "" {
 		env = "local"
@@ -22,7 +22,7 @@ func GetEnv() string {
 	return env
 }
 
-func Exists(file string) bool {
+func exists(file string) bool {
 	if _, err := os.Stat(file); err != nil {
 		if os.IsNotExist(err) {
 			return false
@@ -31,11 +31,11 @@ func Exists(file string) bool {
 	return true
 }
 
-func ReadFile(file string, obj interface{}) ([]byte, error) {
+func readFile(file string, obj interface{}) ([]byte, error) {
 	var err error
 
-	if !Exists(file) {
-		return nil, errors.New(errors.ErrorLevel, 0, "file don't exist")
+	if !exists(file) {
+		return nil, errors.New(errors.LevelError, 0, "file don't exist")
 	}
 
 	f, err := os.Open(file)
@@ -57,11 +57,11 @@ func ReadFile(file string, obj interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func ReadFileLines(file string) ([]string, error) {
+func readFileLines(file string) ([]string, error) {
 	lines := make([]string, 0)
 
-	if !Exists(file) {
-		return nil, errors.New(errors.ErrorLevel, 0, "file don't exist")
+	if !exists(file) {
+		return nil, errors.New(errors.LevelError, 0, "file don't exist")
 	}
 
 	f, err := os.Open(file)
@@ -82,9 +82,9 @@ func ReadFileLines(file string) ([]string, error) {
 	return lines, nil
 }
 
-func WriteFile(file string, obj interface{}) error {
-	if !Exists(file) {
-		return errors.New(errors.ErrorLevel, 0, "file don't exist")
+func writeFile(file string, obj interface{}) error {
+	if !exists(file) {
+		return errors.New(errors.LevelError, 0, "file don't exist")
 	}
 
 	jsonBytes, _ := json.MarshalIndent(obj, "", "    ")
