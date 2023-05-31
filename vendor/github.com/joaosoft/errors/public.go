@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func New(level Level, code int, err interface{}, params ...interface{}) *Error {
+func New(level Level, code interface{}, err interface{}, params ...interface{}) *Error {
 
 	var message string
 	switch v := err.(type) {

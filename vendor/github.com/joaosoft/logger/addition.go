@@ -1,8 +1,6 @@
 package logger
 
-import (
-	"github.com/joaosoft/errors"
-)
+import "github.com/joaosoft/errors"
 
 type Addition struct {
 	message string

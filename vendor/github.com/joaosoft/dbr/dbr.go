@@ -143,7 +143,7 @@ func (dbr *Dbr) Insert() *StmtInsert {
 	return newStmtInsert(dbr, dbr.Connections.Write, &StmtWith{})
 }
 
-func (dbr *Dbr) Update(table string) *StmtUpdate {
+func (dbr *Dbr) Update(table interface{}) *StmtUpdate {
 	return newStmtUpdate(dbr, dbr.Connections.Write, &StmtWith{}, table)
 }
 

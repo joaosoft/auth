@@ -60,7 +60,7 @@ func (tx *Transaction) Insert() *StmtInsert {
 	return newStmtInsert(tx.dbr, tx.dbr.Connections.Write, &StmtWith{})
 }
 
-func (tx *Transaction) Update(table string) *StmtUpdate {
+func (tx *Transaction) Update(table interface{}) *StmtUpdate {
 	return newStmtUpdate(tx.dbr, tx.dbr.Connections.Write, &StmtWith{}, table)
 }
 
