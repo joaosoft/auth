@@ -1,6 +1,6 @@
 package main
 
-import "auth"
+import "github.com/joaosoft/auth"
 
 func main() {
 	m, err := auth.NewAuth()
