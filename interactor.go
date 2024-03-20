@@ -44,7 +44,7 @@ func (i *model) newToken(user *User) (string, error) {
 }
 
 func (i *model) newRefreshToken(user *User) (string, error) {
-	jwtId, _ := uuid.NewV4()
+	jwtId := uuid.NewV4()
 
 	claims := wst.Claims{
 		wst.ClaimsAudienceKey: "auth",
